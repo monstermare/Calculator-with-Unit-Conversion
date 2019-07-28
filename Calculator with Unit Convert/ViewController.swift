@@ -66,10 +66,13 @@ class ViewController: UIViewController {
     let CELL_BCOLOR = COLOR_A1 // background
     let CELL_FCOLOR = COLOR_A2 // foreground
     let TABLE_BCOLOR = COLOR_A1
+    let MSG_BCOLOR = COLOR_D1
+    let MSG_TCOLOR = COLOR_E1
     //------------------------//
     let BUTTON_FONT_SIZE: CGFloat = 25
     let MAIN_FONT_SIZE: CGFloat = 95
     let ANS_FONT_SIZE: CGFloat = 40
+    let MSG_FONT_SIZE: CGFloat = 25
     //------------------------//
     let ANIMATION_BC_INTERVAL: CFTimeInterval = 1
     //------------------------//
@@ -89,9 +92,8 @@ class ViewController: UIViewController {
     let BOX_ROUND: Float = 0.3 //0.40625
     let SEL_ROUND: Float = 0.3
     let TABLE_ROUND: Float = 0.0625
-    
-    // conv unit dict
-    let CONV_MENU = UnitConvLibrary()
+    let MSG_ROUND: Float = 0.125
+    let MSG_DUR: TimeInterval = 1
     
     // ::::VARIABLES:::
     // system preference
@@ -108,6 +110,7 @@ class ViewController: UIViewController {
     var isTableMode = false
     var sourceSelected = false
     var tableSelected = true // false = target / true = source
+    var currencyLoaded = false
     
     // safeArea
     var safeLeft: CGFloat = 0
@@ -160,6 +163,10 @@ class ViewController: UIViewController {
     var sourceYFactor: CGFloat = 1.1
     var targetHeightFactor: CGFloat = 2.2
     var targetYFactor: CGFloat = 1.1
+    var msgBoxXFactor: CGFloat = 0.5
+    var msgBoxYFactor: CGFloat = 0.4
+    var msgBoxWidthFactor: CGFloat = 0.65
+    var msgBoxHeightFactor: CGFloat = 0.15
     
     // arrays & dict
     var grid: [[(CGFloat,CGFloat)]] = []
@@ -175,10 +182,16 @@ class ViewController: UIViewController {
     // algorithm
     let calAlg = CalAlgorithm()
     
+    // conv unit dict
+    var conv_menu = UnitConvLibrary()
+    
     //other
     var highlighted: CalButton?
     var backToCal: CalButton?
     var table: TableView?
+    var msgBox: CalLabel?
+    var tarValue: Double?
+    var curLibrary: ParsedCurrency?
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return statusBarStyle
@@ -192,6 +205,7 @@ class ViewController: UIViewController {
         initLabels()
         initConvButtons()
         initConvTables()
+        initOthers()
         activateButtons()
         self.view.backgroundColor = BACKGROUND_COLOR
     }
@@ -235,13 +249,47 @@ class ViewController: UIViewController {
         }
     }
     
+    @objc func labelValueClicked(_ sender: UITapGestureRecognizer){
+        if(sender.state == UIGestureRecognizer.State.began){
+            var copied = false
+            if(sender.view === labels[0].getRefLabel()){
+                copyValueToClipboard(labels[0].getTitle())
+                copied = true
+            }else if(sender.view === labels[3].getRefLabel() && sourceUnit != nil && tableSection != nil){
+                copyValueToClipboard(labels[1].getTitle())
+                copied = true
+            }
+            if(copied){
+                msgBox?.setTitle("Value Copied!")
+                msgBox?.setBackgroundAlpha(0.75)
+                UIView.animate(withDuration: 1.25, delay: 0.25, options: .transitionCrossDissolve, animations: {
+                    self.msgBox!.setBackgroundAlpha(0)
+                })
+            }
+            
+        }
+    }
+    
+    @objc func targetValueClicked(_ sender: UITapGestureRecognizer){
+        if(sender.view === labels[3].getRefLabel() && sourceUnit != nil && tableSection != nil && tarValue != nil){
+            calAlg.newVal = tarValue!
+            calAlg.addInput(.change, "converted")
+            convertMode(true)
+        }
+    }
+    
+    func copyValueToClipboard(_ str: String){
+        let board = UIPasteboard.general
+        board.string = str
+    }
+    
     func popSelectBar(_ source: Bool){
         if(source){
             tableSelected = true
             if let type = tableSection{ // if section page is selected
-                cell_group = CONV_MENU.getUnitTitles(type)
+                cell_group = conv_menu.getUnitTitles(type)
             }else{
-                cell_group = CONV_MENU.getUnitTypeTitles()
+                cell_group = conv_menu.getUnitTypeTitles()
             }
             if(cell_group != nil){
                 if(tableSection != nil){
@@ -253,7 +301,7 @@ class ViewController: UIViewController {
             }
         }else{
             tableSelected = false
-            cell_group = CONV_MENU.getUnitTitles(tableSection!)
+            cell_group = conv_menu.getUnitTitles(tableSection!)
             if let cg = cell_group{
                 cell_size = cg.count
             }else{
@@ -276,6 +324,20 @@ class ViewController: UIViewController {
             }
             
         }, completion: nil)
+        updateSelectLabel()
+    }
+    
+    func updateSelectLabel(){
+        if(sourceUnit != nil && tableSection != nil){
+            selects[1].setTitle(sourceUnit!)
+        }else{
+            selects[1].setTitle(SELECT_SOURCE_DEFAULT)
+        }
+        if(targetUnit != nil && tableSection != nil){
+            selects[0].setTitle(targetUnit!)
+        }else{
+            selects[0].setTitle(SELECT_TARGET_DEFAULT)
+        }
     }
     
     func initSafe(_ view: UIEdgeInsets){
@@ -293,8 +355,7 @@ class ViewController: UIViewController {
         initLabels()
         initConvButtons()
         initConvTables()
-        //isCalculatorLabelsHidden(false)
-        //isCalculatorButtonsHidden(false)
+        initOthers()
     }
     
     func initType(){
@@ -394,27 +455,34 @@ class ViewController: UIViewController {
         // ans text set
         let ans = labels[1]
         if let ansText = calAlg.getPreviousNum(){
-            ans.setTitle(ansText)
+            if(ansText.contains("E")){
+                ans.setHighlightedTitleByHex(title: ansText, highlighted: "E", hex: E_TCOLOR)
+            }else{
+                ans.setTitle(ansText)
+            }
         }else{
             ans.setTitle("")
         }
         // target
         if(targetUnit != nil && sourceUnit != nil && tableSection != nil && Double(calAlg.current) != nil){
             let src = Double(calAlg.current)!
-            if let tar = CONV_MENU.getConverted(sourceValue: src, sourceUnitType: tableSection!, sourceUnit: sourceUnit!, targetUnitType: tableSection!, targetUnit: targetUnit!){
+            if let tar = conv_menu.getConverted(sourceValue: src, sourceUnitType: tableSection!, sourceUnit: sourceUnit!, targetUnitType: tableSection!, targetUnit: targetUnit!){
+                tarValue = tar.0
                 let val = Utilities.minimizeNum(input: tar.0)
                 let symbol = tar.1
                 labels[3].setHighlightedTitleByHex(title: val+" "+symbol, highlighted: symbol, hex: OP_BCOLOR)
             }else{
+                tarValue = nil
                 labels[3].setTitle("")
             }
         }else{
+            tarValue = nil
             labels[3].setTitle("")
         }
         // source
         if(sourceUnit != nil && tableSection != nil){
             let val = calAlg.getCurrentNum()
-            let symbol = CONV_MENU.getUnitSymbol(tableSection!, unit: sourceUnit!)
+            let symbol = conv_menu.getUnitSymbol(tableSection!, unit: sourceUnit!)
             labels[2].setHighlightedTitleByHex(title: val+" "+symbol+" ➜", highlighted: symbol, hex: OP_BCOLOR)
         }else{
             let text = calAlg.getCurrentNum()+" ➜"
@@ -459,15 +527,41 @@ class ViewController: UIViewController {
         }
     }
     
+    func initOthers(){
+        if(!safeInit){
+            msgBox = CalLabel()
+            msgBox!.setBackGroundColorByHex(MSG_BCOLOR)
+            msgBox!.setFontColorByHex(MSG_TCOLOR)
+            msgBox!.setBackgroundAlpha(0)
+            msgBox!.setTextAlign(.center)
+            msgBox!.setAutoTextResize(true)
+            // load currency info from open api
+            getCurrencyFromURL(address: CURRENCY_API_URL, completion: { (pc) in
+                self.curLibrary = pc
+                self.currencyLoaded = true
+                self.conv_menu.setCurrencyLibrary(pc)
+                })
+        }else{
+            let x = (ex-sx)*msgBoxXFactor
+            let y = (ey-sy)*msgBoxYFactor
+            let w = (ex-sx)*msgBoxWidthFactor
+            let h = (ey-sy)*msgBoxHeightFactor
+            msgBox!.setFrame(x: x, y: y, w: w, h: h)
+            msgBox!.setCornerRadius(r: CGFloat(MSG_ROUND))
+            msgBox!.setFontSize(MSG_FONT_SIZE, "bold")
+            msgBox!.showLabel(self.view)
+        }
+    }
+    
     func initConvTables(){
         if(!safeInit){
             table = TableView()
             table!.setBackgroundColorByHex(TABLE_BCOLOR)
             table!.setExtension(self)
             table!.setRegister(TableViewCell.self, forCellReuseIdentifier: CELL_ID)
-            //guesture
-            let guesture = UITapGestureRecognizer(target: self, action: #selector(self.converterBackgroundClicked))
-            tableView.addGestureRecognizer(guesture)
+            //gesture
+            let gesture = UITapGestureRecognizer(target: self, action: #selector(self.converterBackgroundClicked))
+            tableView.addGestureRecognizer(gesture)
         }else{
             let x = (ex-sx)*tableXFactor
             let y = (ey-sy)*tableYFactor
@@ -528,7 +622,9 @@ class ViewController: UIViewController {
     
     func initLabels(){
         if(!safeInit){
-            let main = CalLabel() // main
+            var copyGesture = UILongPressGestureRecognizer(target: self, action: #selector(self.labelValueClicked))
+            copyGesture.minimumPressDuration = MSG_DUR
+            let main = CalLabel()
             main.setTitle("0")
             main.setValue("0")
             main.setBackGroundColorByHex(MAIN_BCOLOR)
@@ -536,7 +632,7 @@ class ViewController: UIViewController {
             main.setTextAlign(.right)
             main.setAutoTextResize(true)
             main.showLabel(calculatorView)
-            //main.isHidden(true)
+            main.addGesture(copyGesture)
             labels.append(main)
             let ans = CalLabel()
             ans.setTitle("")
@@ -547,24 +643,29 @@ class ViewController: UIViewController {
             ans.setAutoTextResize(true)
             ans.showLabel(calculatorView)
             labels.append(ans)
-            let target = CalLabel()
-            target.setTitle("0")
-            target.setValue("0")
-            target.setBackGroundColorByHex(TAR_BCOLOR)
-            target.setFontColorByHex(TAR_TCOLOR)
-            target.setTextAlign(.right)
-            target.setAutoTextResize(true)
-            target.showLabel(converterView)
-            labels.append(target)
             let source = CalLabel()
             source.setTitle("0")
             source.setValue("0")
-            source.setBackGroundColorByHex(SRC_BCOLOR)
-            source.setFontColorByHex(SRC_TCOLOR)
+            source.setBackGroundColorByHex(TAR_BCOLOR)
+            source.setFontColorByHex(TAR_TCOLOR)
             source.setTextAlign(.right)
             source.setAutoTextResize(true)
             source.showLabel(converterView)
             labels.append(source)
+            copyGesture = UILongPressGestureRecognizer(target: self, action: #selector(self.labelValueClicked))
+            copyGesture.minimumPressDuration = MSG_DUR
+            let tarToMainGesture = UITapGestureRecognizer(target: self, action: #selector(self.targetValueClicked))
+            let target = CalLabel()
+            target.setTitle("0")
+            target.setValue("0")
+            target.setBackGroundColorByHex(SRC_BCOLOR)
+            target.setFontColorByHex(SRC_TCOLOR)
+            target.setTextAlign(.right)
+            target.setAutoTextResize(true)
+            target.showLabel(converterView)
+            target.addGesture(copyGesture)
+            target.addGesture(tarToMainGesture)
+            labels.append(target)
         }else{
             let main = labels[0]
             let ans = labels[1]

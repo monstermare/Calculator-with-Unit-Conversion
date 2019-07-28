@@ -14,11 +14,11 @@
 		5D460E1922EBF96100E16BC9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5D460E1722EBF96100E16BC9 /* LaunchScreen.storyboard */; };
 		5D460E2422EBF96100E16BC9 /* Calculator_with_Unit_ConvertTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D460E2322EBF96100E16BC9 /* Calculator_with_Unit_ConvertTests.swift */; };
 		5D460E2F22EBF96100E16BC9 /* Calculator_with_Unit_ConvertUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D460E2E22EBF96100E16BC9 /* Calculator_with_Unit_ConvertUITests.swift */; };
-		5D460E4122EBF9D400E16BC9 /* CalculatorAlgorithm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D460E3C22EBF9D300E16BC9 /* CalculatorAlgorithm.swift */; };
-		5D460E4222EBF9D400E16BC9 /* TableViewElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D460E3D22EBF9D300E16BC9 /* TableViewElements.swift */; };
-		5D460E4322EBF9D400E16BC9 /* Utilites.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D460E3E22EBF9D300E16BC9 /* Utilites.swift */; };
-		5D460E4422EBF9D400E16BC9 /* ConverterAlgorithm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D460E3F22EBF9D300E16BC9 /* ConverterAlgorithm.swift */; };
-		5D460E4522EBF9D400E16BC9 /* CalculatorComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D460E4022EBF9D300E16BC9 /* CalculatorComponents.swift */; };
+		5D660AB622ED832F0046615D /* Utilites.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D660AB122ED832E0046615D /* Utilites.swift */; };
+		5D660AB722ED832F0046615D /* CalculatorAlgorithm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D660AB222ED832F0046615D /* CalculatorAlgorithm.swift */; };
+		5D660AB822ED832F0046615D /* CalculatorComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D660AB322ED832F0046615D /* CalculatorComponents.swift */; };
+		5D660AB922ED832F0046615D /* ConverterAlgorithm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D660AB422ED832F0046615D /* ConverterAlgorithm.swift */; };
+		5D660ABA22ED832F0046615D /* TableViewElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D660AB522ED832F0046615D /* TableViewElements.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,11 +52,11 @@
 		5D460E2A22EBF96100E16BC9 /* Calculator with Unit ConvertUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Calculator with Unit ConvertUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D460E2E22EBF96100E16BC9 /* Calculator_with_Unit_ConvertUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Calculator_with_Unit_ConvertUITests.swift; sourceTree = "<group>"; };
 		5D460E3022EBF96100E16BC9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		5D460E3C22EBF9D300E16BC9 /* CalculatorAlgorithm.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CalculatorAlgorithm.swift; path = "../../Calculator + Unit Converter/Calculator And Unit Converter/CalculatorAlgorithm.swift"; sourceTree = "<group>"; };
-		5D460E3D22EBF9D300E16BC9 /* TableViewElements.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TableViewElements.swift; path = "../../Calculator + Unit Converter/TableViewElements.swift"; sourceTree = "<group>"; };
-		5D460E3E22EBF9D300E16BC9 /* Utilites.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Utilites.swift; path = "../../Calculator + Unit Converter/Calculator And Unit Converter/Utilites.swift"; sourceTree = "<group>"; };
-		5D460E3F22EBF9D300E16BC9 /* ConverterAlgorithm.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ConverterAlgorithm.swift; path = "../../Calculator + Unit Converter/ConverterAlgorithm.swift"; sourceTree = "<group>"; };
-		5D460E4022EBF9D300E16BC9 /* CalculatorComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CalculatorComponents.swift; path = "../../Calculator + Unit Converter/Calculator And Unit Converter/CalculatorComponents.swift"; sourceTree = "<group>"; };
+		5D660AB122ED832E0046615D /* Utilites.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utilites.swift; sourceTree = "<group>"; };
+		5D660AB222ED832F0046615D /* CalculatorAlgorithm.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CalculatorAlgorithm.swift; sourceTree = "<group>"; };
+		5D660AB322ED832F0046615D /* CalculatorComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CalculatorComponents.swift; sourceTree = "<group>"; };
+		5D660AB422ED832F0046615D /* ConverterAlgorithm.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConverterAlgorithm.swift; sourceTree = "<group>"; };
+		5D660AB522ED832F0046615D /* TableViewElements.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TableViewElements.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -112,12 +112,12 @@
 				5D460E1222EBF96000E16BC9 /* Main.storyboard */,
 				5D460E1522EBF96100E16BC9 /* Assets.xcassets */,
 				5D460E1722EBF96100E16BC9 /* LaunchScreen.storyboard */,
+				5D660AB222ED832F0046615D /* CalculatorAlgorithm.swift */,
+				5D660AB322ED832F0046615D /* CalculatorComponents.swift */,
+				5D660AB422ED832F0046615D /* ConverterAlgorithm.swift */,
+				5D660AB522ED832F0046615D /* TableViewElements.swift */,
+				5D660AB122ED832E0046615D /* Utilites.swift */,
 				5D460E1A22EBF96100E16BC9 /* Info.plist */,
-				5D460E3C22EBF9D300E16BC9 /* CalculatorAlgorithm.swift */,
-				5D460E4022EBF9D300E16BC9 /* CalculatorComponents.swift */,
-				5D460E3F22EBF9D300E16BC9 /* ConverterAlgorithm.swift */,
-				5D460E3D22EBF9D300E16BC9 /* TableViewElements.swift */,
-				5D460E3E22EBF9D300E16BC9 /* Utilites.swift */,
 			);
 			path = "Calculator with Unit Convert";
 			sourceTree = "<group>";
@@ -271,13 +271,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5D460E4322EBF9D400E16BC9 /* Utilites.swift in Sources */,
+				5D660ABA22ED832F0046615D /* TableViewElements.swift in Sources */,
 				5D460E1122EBF96000E16BC9 /* ViewController.swift in Sources */,
-				5D460E4122EBF9D400E16BC9 /* CalculatorAlgorithm.swift in Sources */,
-				5D460E4222EBF9D400E16BC9 /* TableViewElements.swift in Sources */,
-				5D460E4522EBF9D400E16BC9 /* CalculatorComponents.swift in Sources */,
-				5D460E4422EBF9D400E16BC9 /* ConverterAlgorithm.swift in Sources */,
+				5D660AB722ED832F0046615D /* CalculatorAlgorithm.swift in Sources */,
+				5D660AB622ED832F0046615D /* Utilites.swift in Sources */,
 				5D460E0F22EBF96000E16BC9 /* AppDelegate.swift in Sources */,
+				5D660AB922ED832F0046615D /* ConverterAlgorithm.swift in Sources */,
+				5D660AB822ED832F0046615D /* CalculatorComponents.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
