@@ -51,6 +51,7 @@ class CalLabel{
         label = UILabel(frame: CGRect(x: x, y: y, width: w, height: h))
         bcolor = .clear
         tcolor = .black
+        label.layer.shadowOpacity = 0
     }
     
     func setFrame(x: CGFloat?, y: CGFloat?, w: CGFloat?, h: CGFloat?){
@@ -59,7 +60,7 @@ class CalLabel{
         if(x != nil){self.x = x!-(width/2)}
         if(y != nil){self.y = y!-(height/2)}
         if(x != nil || y != nil || w != nil || h != nil){
-            label.frame = CGRect(x: self.x, y: self.y, width: width, height: height)
+            label.frame = CGRect(x: self.x, y: self.y, width: ceil(width), height: ceil(height))
         }
     }
     
@@ -77,7 +78,7 @@ class CalLabel{
         if(y != nil){
             self.y = y!
         }
-        label.frame = CGRect(x: self.x, y: self.y, width: self.width, height: self.height)
+        label.frame = CGRect(x: self.x, y: self.y, width: ceil(self.width), height: ceil(self.height))
     }
     
     func addGesture(_ gesture: UIGestureRecognizer){

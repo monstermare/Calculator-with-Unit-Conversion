@@ -19,6 +19,8 @@
 		5D660AB822ED832F0046615D /* CalculatorComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D660AB322ED832F0046615D /* CalculatorComponents.swift */; };
 		5D660AB922ED832F0046615D /* ConverterAlgorithm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D660AB422ED832F0046615D /* ConverterAlgorithm.swift */; };
 		5D660ABA22ED832F0046615D /* TableViewElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D660AB522ED832F0046615D /* TableViewElements.swift */; };
+		5D660AFA22EE1AC70046615D /* CalculatorDB.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 5D660AF822EE1AC70046615D /* CalculatorDB.xcdatamodeld */; };
+		5DA73C1D22EE852200B4F533 /* CoreDataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA73C1C22EE852200B4F533 /* CoreDataController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +59,8 @@
 		5D660AB322ED832F0046615D /* CalculatorComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CalculatorComponents.swift; sourceTree = "<group>"; };
 		5D660AB422ED832F0046615D /* ConverterAlgorithm.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConverterAlgorithm.swift; sourceTree = "<group>"; };
 		5D660AB522ED832F0046615D /* TableViewElements.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TableViewElements.swift; sourceTree = "<group>"; };
+		5D660AF922EE1AC70046615D /* CalculatorDB.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = CalculatorDB.xcdatamodel; sourceTree = "<group>"; };
+		5DA73C1C22EE852200B4F533 /* CoreDataController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,6 +113,7 @@
 			children = (
 				5D460E0E22EBF96000E16BC9 /* AppDelegate.swift */,
 				5D460E1022EBF96000E16BC9 /* ViewController.swift */,
+				5DA73C1C22EE852200B4F533 /* CoreDataController.swift */,
 				5D460E1222EBF96000E16BC9 /* Main.storyboard */,
 				5D460E1522EBF96100E16BC9 /* Assets.xcassets */,
 				5D460E1722EBF96100E16BC9 /* LaunchScreen.storyboard */,
@@ -117,6 +122,7 @@
 				5D660AB422ED832F0046615D /* ConverterAlgorithm.swift */,
 				5D660AB522ED832F0046615D /* TableViewElements.swift */,
 				5D660AB122ED832E0046615D /* Utilites.swift */,
+				5D660AF822EE1AC70046615D /* CalculatorDB.xcdatamodeld */,
 				5D460E1A22EBF96100E16BC9 /* Info.plist */,
 			);
 			path = "Calculator with Unit Convert";
@@ -272,9 +278,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				5D660ABA22ED832F0046615D /* TableViewElements.swift in Sources */,
+				5D660AFA22EE1AC70046615D /* CalculatorDB.xcdatamodeld in Sources */,
 				5D460E1122EBF96000E16BC9 /* ViewController.swift in Sources */,
 				5D660AB722ED832F0046615D /* CalculatorAlgorithm.swift in Sources */,
 				5D660AB622ED832F0046615D /* Utilites.swift in Sources */,
+				5DA73C1D22EE852200B4F533 /* CoreDataController.swift in Sources */,
 				5D460E0F22EBF96000E16BC9 /* AppDelegate.swift in Sources */,
 				5D660AB922ED832F0046615D /* ConverterAlgorithm.swift in Sources */,
 				5D660AB822ED832F0046615D /* CalculatorComponents.swift in Sources */,
@@ -455,6 +463,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Q5TSRU277X;
 				INFOPLIST_FILE = "Calculator with Unit Convert/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -473,6 +482,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Q5TSRU277X;
 				INFOPLIST_FILE = "Calculator with Unit Convert/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -606,6 +616,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		5D660AF822EE1AC70046615D /* CalculatorDB.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				5D660AF922EE1AC70046615D /* CalculatorDB.xcdatamodel */,
+			);
+			currentVersion = 5D660AF922EE1AC70046615D /* CalculatorDB.xcdatamodel */;
+			path = CalculatorDB.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 5D460E0322EBF96000E16BC9 /* Project object */;
 }

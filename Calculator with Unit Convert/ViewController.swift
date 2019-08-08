@@ -27,6 +27,8 @@ let COLOR_E2 = "#CCCCCCFF" // ans, source
 let COLOR_E3 = "#999999FF" // cell table background
 let COLOR_E4 = "#2B2B2BFF" // background color
 
+let MAX_HISTORY_LIST: Int16 = 5 // size of history stack
+
 class ViewController: UIViewController {
     // ::::CONSTANTS::::
     // essential constants
@@ -34,6 +36,7 @@ class ViewController: UIViewController {
     let SCREEN_MAXWIDTH = UIScreen.main.bounds.width
     let BACKGROUND_COLOR = Utilities.hex2rgba("#2B2B2BFF")
     //------------------------//
+    let SAVED_CURRENCY_KEY = "CURRENCYLIBRARY"
     //------------------------//
     let OP_BCOLOR = COLOR_B1
     let OP_TCOLOR = COLOR_B2
@@ -127,6 +130,10 @@ class ViewController: UIViewController {
     // table init pos
     var tablePos: (open:CGFloat,close:CGFloat)?
     
+    // view swipe
+    var calCenterX: CGFloat?
+    var convCenterX: CGFloat?
+    
     // extensions
     var cell_size: Int = 0
     var cell_height: CGFloat = 75
@@ -167,6 +174,10 @@ class ViewController: UIViewController {
     var msgBoxYFactor: CGFloat = 0.4
     var msgBoxWidthFactor: CGFloat = 0.65
     var msgBoxHeightFactor: CGFloat = 0.15
+    var historyYFactor: CGFloat = 2.25
+    var historyWidthFactor: CGFloat = 0.9
+    var historyHeightFactor: CGFloat = 0.06
+    var historyGapFactor: CGFloat = 1.5
     
     // arrays & dict
     var grid: [[(CGFloat,CGFloat)]] = []
@@ -175,12 +186,18 @@ class ViewController: UIViewController {
     var others: [String:CalButton] = [:]
     var labels = Array<CalLabel>()
     var selects = Array<CalButton>()
+    var history = Array<(label: CalLabel,info: convertedHistory)>()
     
     // ref
     var btnDict: [UIButton:CalButton] = [:]
     
     // algorithm
     let calAlg = CalAlgorithm()
+    
+    // history
+    var prevUnitType: String?
+    var prevSource: String?
+    var prevTarget: String?
     
     // conv unit dict
     var conv_menu = UnitConvLibrary()
@@ -199,13 +216,14 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        loadData()
         initType()
         initView()
+        initOthers()
         initButtons()
         initLabels()
         initConvButtons()
         initConvTables()
-        initOthers()
         activateButtons()
         self.view.backgroundColor = BACKGROUND_COLOR
     }
@@ -213,6 +231,77 @@ class ViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         if(!safeInit){initSafe(view.safeAreaInsets)}
+    }
+    
+    func addHistory(_ unitType: String,_ source: String,_ target: String){
+        let info = convertedHistory(index: 0, source: source, target: target, unitType: unitType)
+        var indicator = MAX_HISTORY_LIST
+        var newWritten = false
+        history.forEach { h in
+            if(h.info==info) {
+                indicator = h.info.index
+            }
+        }
+        for (i,h) in history.enumerated(){
+            if(h.info.index>=0){
+                if(h.info.index==indicator){
+                    history[i].info = convertedHistory(index: -1, source: "", target: "", unitType: "")
+                    setHistoryCell(i, h.info.index+1, false)
+                }else if(h.info.index<indicator){
+                    let j = h.info.index+1
+                    if(j>=MAX_HISTORY_LIST){
+                        history[i].info = convertedHistory(index: -1, source: "", target: "", unitType: "")
+                        setHistoryCell(i, j, false)
+                    }else{
+                        history[i].info.setIndex(h.info.index+1)
+                        setHistoryCell(i, j, true)
+                    }
+                }
+            }else if(!newWritten){
+                history[i].info = info
+                setHistoryCell(i,0, true)
+                newWritten = true
+            }
+        }
+        
+    }
+    
+    func setHistoryCell(_ index: Int, _ pos: Int16, _ show: Bool){
+        var y = (ey-sy)/segYFactor*(historyYFactor)
+        let label = history[index].label
+        var alpha: CGFloat = 0
+        if(show) { alpha = 1 }
+        y += (ey-sy)*historyHeightFactor*historyGapFactor*CGFloat(pos)
+        label.setFrame(x: nil, y: y, w: nil, h: nil)
+        y = (ey-sy)*historyHeightFactor*historyGapFactor
+        UIView.animate(withDuration: 1.25, delay: 0.25, options: .transitionCrossDissolve, animations: {
+            label.setBackgroundAlpha(alpha)
+            label.getRefLabel().center.y += y
+        })
+    }
+    
+    func loadData(){
+        //currency loading
+        let currencies = getCurrencyFromDB()
+        let today = {() -> String in
+            let f = DateFormatter()
+            f.dateFormat = "yyyy-MM-dd"
+            return f.string(from: Date())
+        }()
+        if(currencies != [] && currencies[0].date == today){
+            let base = currencies[0].base
+            let date = currencies[0].date
+            var rates: [String:Double] = [:]
+            currencies.forEach { c in
+                rates[c.country] = c.rate
+            }
+            let pc = ParsedCurrency(date: date, rates: rates, base: base)
+            let title = "Currency (\(date))"
+            self.curLibrary = pc
+            self.currencyLoaded = true
+            self.conv_menu.setCurrencyLibrary(pc,title)
+            conv_menu.setCurrencyLibrary(curLibrary!, title)
+        }
     }
     
     @objc func buttonClicked(_ sender: UIButton){
@@ -252,14 +341,24 @@ class ViewController: UIViewController {
     @objc func labelValueClicked(_ sender: UITapGestureRecognizer){
         if(sender.state == UIGestureRecognizer.State.began){
             var copied = false
+            var value: String = ""
             if(sender.view === labels[0].getRefLabel()){
-                copyValueToClipboard(labels[0].getTitle())
                 copied = true
+                value = labels[0].getTitle()
             }else if(sender.view === labels[3].getRefLabel() && sourceUnit != nil && tableSection != nil){
-                copyValueToClipboard(labels[1].getTitle())
+                value = labels[1].getTitle()
                 copied = true
+            }else{
+                for h in history{
+                    if(h.info.index > -1 && h.label.getRefLabel() === sender.view){
+                        copied = true
+                        value = h.label.value!
+                        break
+                    }
+                }
             }
             if(copied){
+                copyValueToClipboard(value)
                 msgBox?.setTitle("Value Copied!")
                 msgBox?.setBackgroundAlpha(0.75)
                 UIView.animate(withDuration: 1.25, delay: 0.25, options: .transitionCrossDissolve, animations: {
@@ -275,6 +374,45 @@ class ViewController: UIViewController {
             calAlg.newVal = tarValue!
             calAlg.addInput(.change, "converted")
             convertMode(true)
+        }else{
+            
+        }
+    }
+    
+    @objc func swipeView(_ sender: UIPanGestureRecognizer){
+        let translation = sender.translation(in: sender.view)
+        let isCal: Bool = sender.view === calculatorView
+        let x = translation.x
+        if(sender.state == .began){
+            updateLabels()
+            calCenterX = calculatorView.center.x
+            convCenterX = converterView.center.x
+        }else if(sender.state == .ended){
+            let newCalX: CGFloat
+            let newConvX: CGFloat
+            if(-x > SCREEN_MAXWIDTH/2 && isCal){ // move to other state
+                //newCalX = calCenterX! - SCREEN_MAXWIDTH
+                //newConvX = convCenterX! - SCREEN_MAXWIDTH
+                newCalX = (SCREEN_MAXWIDTH/2) - SCREEN_MAXWIDTH
+                newConvX = (SCREEN_MAXWIDTH/2)
+            }else if(x > SCREEN_MAXWIDTH/2 && !isCal){
+                //newCalX = calCenterX! + SCREEN_MAXWIDTH
+                //newConvX = convCenterX! + SCREEN_MAXWIDTH
+                newCalX = (SCREEN_MAXWIDTH/2)
+                newConvX = (SCREEN_MAXWIDTH/2) + SCREEN_MAXWIDTH
+            }else{ // back to original state
+                newCalX = calCenterX!
+                newConvX = convCenterX!
+            }
+            UIView.animate(withDuration: 0.25, delay: 0, options: [], animations: {
+                self.calculatorView.center.x = newCalX
+                self.converterView.center.x = newConvX
+            }, completion: nil)
+        }else if( (x<0 && isCal) || (x>0 && !isCal)){
+            guard let cal = calCenterX else { return }
+            guard let conv = convCenterX else { return }
+            calculatorView.center.x = cal + x
+            converterView.center.x = conv + x
         }
     }
     
@@ -375,6 +513,11 @@ class ViewController: UIViewController {
         converterView.frame = CGRect(x: SCREEN_MAXWIDTH, y: 0, width: SCREEN_MAXWIDTH, height: SCREEN_MAXHEIGHT)
         calculatorView.frame = CGRect(x: 0, y: 0, width: SCREEN_MAXWIDTH, height: SCREEN_MAXHEIGHT)
         tableView.frame = CGRect(x: 0, y: SCREEN_MAXHEIGHT, width: SCREEN_MAXWIDTH, height: SCREEN_MAXHEIGHT)
+        // swipe gesture
+        let swipeLeft = UIPanGestureRecognizer(target: self, action: #selector(swipeView))
+        calculatorView.addGestureRecognizer(swipeLeft)
+        let swipeRight = UIPanGestureRecognizer(target: self, action: #selector(swipeView))
+        converterView.addGestureRecognizer(swipeRight)
     }
     
     func btype2atype(button: ButtonType) -> InputType?{
@@ -467,6 +610,14 @@ class ViewController: UIViewController {
         if(targetUnit != nil && sourceUnit != nil && tableSection != nil && Double(calAlg.current) != nil){
             let src = Double(calAlg.current)!
             if let tar = conv_menu.getConverted(sourceValue: src, sourceUnitType: tableSection!, sourceUnit: sourceUnit!, targetUnitType: tableSection!, targetUnit: targetUnit!){
+                if(prevUnitType != nil && prevSource != nil && prevTarget != nil){
+                    if(prevSource != sourceUnit || prevTarget != targetUnit){
+                        self.addHistory(prevUnitType!, prevSource!, prevTarget!)
+                    }
+                }
+                prevUnitType = tableSection!
+                prevSource = sourceUnit!
+                prevTarget = targetUnit!
                 tarValue = tar.0
                 let val = Utilities.minimizeNum(input: tar.0)
                 let symbol = tar.1
@@ -487,6 +638,23 @@ class ViewController: UIViewController {
         }else{
             let text = calAlg.getCurrentNum()+" ➜"
             labels[2].setTitle(text)
+        }
+        // history
+        for h in history{
+            let label = h.label
+            let info = h.info
+            if(info.index > -1){
+                let srcSymbol = conv_menu.getUnitSymbol(info.unitType, unit: info.source)
+                let src = Double(calAlg.current)!
+                if let tar = conv_menu.getConverted(sourceValue: src, sourceUnitType: info.unitType, sourceUnit: info.source, targetUnitType: info.unitType, targetUnit: info.target){
+                    tarValue = tar.0
+                    let val = Utilities.minimizeNum(input: tar.0)
+                    let symbol = tar.1
+                    let text = srcSymbol+" ➜ "+val+symbol
+                    label.setValue(val)
+                    label.setTitle(text)
+                }
+            }
         }
     }
     
@@ -536,20 +704,54 @@ class ViewController: UIViewController {
             msgBox!.setTextAlign(.center)
             msgBox!.setAutoTextResize(true)
             // load currency info from open api
-            getCurrencyFromURL(address: CURRENCY_API_URL, completion: { (pc) in
-                self.curLibrary = pc
-                self.currencyLoaded = true
-                self.conv_menu.setCurrencyLibrary(pc)
+            if(!currencyLoaded){
+                getCurrencyFromURL(address: CURRENCY_API_URL, completion: { (pc) in
+                    let date = pc.date
+                    let title = "Currency (\(date))"
+                    self.curLibrary = pc
+                    self.currencyLoaded = true
+                    self.conv_menu.setCurrencyLibrary(pc,title)
+                    // update currency to db for later use
+                    updateCurrencyToDB(base: pc.base, date: pc.date, rates: pc.rates)
                 })
+            }
+            // load history
+            for _ in 0...(MAX_HISTORY_LIST){
+                let copyGesture = UILongPressGestureRecognizer(target: self, action: #selector(self.labelValueClicked))
+                copyGesture.minimumPressDuration = MSG_DUR
+                let label = CalLabel()
+                label.setBackGroundColorByHex(CONV_BCOLOR)
+                label.setFontColorByHex(CONV_TCOLOR)
+                label.setTextAlign(.center)
+                label.setAutoTextResize(true)
+                label.showLabel(converterView)
+                label.setBackgroundAlpha(0)
+                label.setFontSize(BUTTON_FONT_SIZE)
+                label.addGesture(copyGesture)
+                let ch = convertedHistory(index: -1, source: "", target: "", unitType: "")
+                history.append((label: label,info: ch))
+            }
         }else{
-            let x = (ex-sx)*msgBoxXFactor
-            let y = (ey-sy)*msgBoxYFactor
-            let w = (ex-sx)*msgBoxWidthFactor
-            let h = (ey-sy)*msgBoxHeightFactor
+            var x = (ex-sx)*msgBoxXFactor
+            var y = (ey-sy)*msgBoxYFactor
+            var w = (ex-sx)*msgBoxWidthFactor
+            var h = (ey-sy)*msgBoxHeightFactor
             msgBox!.setFrame(x: x, y: y, w: w, h: h)
             msgBox!.setCornerRadius(r: CGFloat(MSG_ROUND))
             msgBox!.setFontSize(MSG_FONT_SIZE, "bold")
             msgBox!.showLabel(self.view)
+            //load history
+            x = (ex-sx)/2
+            //y = (ey-sy)/segYFactor*3
+            w = (ex-sx)*historyWidthFactor
+            h = (ey-sy)*historyHeightFactor
+            history.forEach { history in
+                let label = history.label
+                y = (ey-sy)/segYFactor*(historyYFactor)
+                y += (ey-sy)*historyHeightFactor*historyGapFactor
+                label.setFrame(x: x, y: y, w: w, h: h)
+                label.setCornerRadius(r: CGFloat(BOX_ROUND))
+            }
         }
     }
     

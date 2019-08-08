@@ -39,18 +39,35 @@ func getCurrencyFromURL(address: String, completion: @escaping ((ParsedCurrency)
             print(error?.localizedDescription ?? "Response Error")
             return
         }
-        do{
-            let json = try JSONDecoder().decode(ParsedCurrency.self, from: dataResponse)
-            completion(json)
-        } catch let parsingError {
-            print("Error", parsingError)
+        DispatchQueue.main.async {
+            do{
+                let json = try JSONDecoder().decode(ParsedCurrency.self, from: dataResponse)
+                completion(json)
+            } catch let parsingError {
+                print("Error", parsingError)
+            }
         }
     }
     task.resume()
 }
 
+struct convertedHistory {
+    var index: Int16
+    var source: String
+    var target: String
+    var unitType: String
+    
+    static func ==(lhs: convertedHistory, rhs: convertedHistory) -> Bool {
+        return (lhs.source == rhs.source && lhs.target == rhs.target && lhs.unitType == rhs.unitType)
+    }
+    
+    mutating func setIndex(_ index: Int16){
+        self.index = index
+    }
+}
+
 struct UnitConvLibrary{
-    let unit: [String:Any]
+    var unit: [String:Any]
     let area: [String:UnitArea] = [
         "Square Megameters (Mm²)":UnitArea.squareMegameters,
         "Square Kilometers (km²)":UnitArea.squareKilometers,
@@ -225,43 +242,44 @@ struct UnitConvLibrary{
         "🇿🇦 South African Rand(R)":"ZAR",
     ]
     let currencySymbol: [String:String] = [
-        "AUD":"$",
-        "BGN":"лв",
-        "BRL":"R$",
-        "CAD":"$",
-        "CHF":"CHF",
-        "CNY":"¥",
-        "CZK":"Kč",
-        "DKK":"kr",
-        "EUR":"€",
-        "GBP":"£",
-        "HKD":"$",
-        "HRK":"kn",
-        "HUF":"Ft",
-        "IDR":"Rp",
-        "ILS":"₪",
-        "INR":"₹",
-        "ISK":"kr",
-        "JPY":"¥",
-        "KRW":"₩",
-        "MXN":"$",
-        "MYR":"RM",
-        "NOK":"kr",
-        "NZD":"$",
-        "PHP":"₱",
-        "PLN":"zł",
-        "RON":"lei",
-        "RUB":"₽",
-        "SEK":"kr",
-        "SGD":"$",
-        "THB":"฿",
-        "TRY":"₺",
-        "USD":"$",
-        "ZAR":"R"
+        "AUD":"🇦🇺($)",
+        "BGN":"🇧🇬(лв)",
+        "BRL":"🇧🇷(R$)",
+        "CAD":"🇨🇦($)",
+        "CHF":"🇨🇭(CHF)",
+        "CNY":"🇨🇳(¥)",
+        "CZK":"🇨🇿(Kč)",
+        "DKK":"🇩🇰(kr)",
+        "EUR":"🇪🇺(€)",
+        "GBP":"🇬🇧(£)",
+        "HKD":"🇭🇰($)",
+        "HRK":"🇭🇷(kn)",
+        "HUF":"🇭🇺(Ft)",
+        "IDR":"🇮🇩(Rp)",
+        "ILS":"🇮🇱(₪)",
+        "INR":"🇮🇳(₹)",
+        "ISK":"🇮🇸(kr)",
+        "JPY":"🇯🇵(¥)",
+        "KRW":"🇰🇷(₩)",
+        "MXN":"🇲🇽($)",
+        "MYR":"🇲🇾(RM)",
+        "NOK":"🇳🇴(kr)",
+        "NZD":"🇳🇿($)",
+        "PHP":"🇵🇭(₱)",
+        "PLN":"🇵🇱(zł)",
+        "RON":"🇷🇴(lei)",
+        "RUB":"🇷🇺(₽)",
+        "SEK":"🇸🇪(kr)",
+        "SGD":"🇸🇬($)",
+        "THB":"🇹🇭(฿)",
+        "TRY":"🇹🇷(₺)",
+        "USD":"🇺🇸($)",
+        "ZAR":"🇿🇦(R)"
     ]
     
     var currencyLibrary: ParsedCurrency?
     var currencyLoaded = false
+    var currencyTitle = "Currency"
     
     init(){
         unit = ["Area":self.area,
@@ -275,12 +293,15 @@ struct UnitConvLibrary{
                 "Energy":self.energy,
                 "Temperature":self.temperature,
                 "Fuel Efficiency":self.fuel,
-                "Currency":self.currency]
+                //"Currency":self.currency
+        ]
     }
     
-    mutating func setCurrencyLibrary(_ curLibrary: ParsedCurrency){
+    mutating func setCurrencyLibrary(_ curLibrary: ParsedCurrency,_ currencyTitle: String){
         self.currencyLibrary = curLibrary
         self.currencyLoaded = true
+        self.currencyTitle = currencyTitle
+        unit[currencyTitle] = self.currency
     }
     
     func getUnitTypeTitles() -> Array<String>{
@@ -297,7 +318,7 @@ struct UnitConvLibrary{
     
     func getUnitSymbol(_ unitType: String, unit: String) -> String{
         switch unitType {
-        case "Currency":
+        case currencyTitle:
             guard let code = currency[unit] else { return "" }
             guard let symbol = currencySymbol[code] else { return "" }
             return symbol
@@ -338,14 +359,14 @@ struct UnitConvLibrary{
         case .volume:
             return "Volume"
         case .currency:
-            return "Currency"
+            return currencyTitle
         }
     }
     
     func getConverted(sourceValue: Double, sourceUnitType: String, sourceUnit: String, targetUnitType: String, targetUnit: String) -> (Double,String)?{
         if(sourceUnitType == targetUnitType){
             switch sourceUnitType {
-            case "Currency":
+            case currencyTitle:
                 return CurrencyConverter(sourceValue, sourceUnit, targetUnit)
             default:
                 return inBuiltConverter(sourceValue, sourceUnitType, sourceUnit, targetUnitType, targetUnit)
@@ -357,7 +378,7 @@ struct UnitConvLibrary{
     
     func CurrencyConverter(_ sourceValue: Double,_ sourceUnit: String,_ targetUnit: String) -> (Double,String)?{
         if(currencyLoaded){
-            let currency = unit["Currency"] as! [String:String]
+            let currency = unit[currencyTitle] as! [String:String]
             guard let source = currency[sourceUnit] else { return nil }
             guard let target = currency[targetUnit] else { return nil }
             guard let srcRate = currencyLibrary?.rates[source] else { return nil }

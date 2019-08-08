@@ -66,27 +66,27 @@ class Utilities{
         return nil
     }
     
-    static func minimizeNum(input: String) -> String {
+    static func minimizeNum(input: String, maxCount: Int = MAX_COUNT) -> String {
         if(Double(input) != nil){
-            return minimizeNum(input: Double(input)!)
+            return minimizeNum(input: Double(input)!, maxCount: maxCount)
         }
         return input
     }
     
-    static func minimizeNum(input: Double) -> String {
+    static func minimizeNum(input: Double, maxCount: Int = MAX_COUNT) -> String {
         let num = input
         let dec = floor(num)==num
         let fmt = NumberFormatter()
         fmt.numberStyle = .decimal
         if(num >= UPPER_LIMIT || (num < LOWER_LIMIT && num > 0)){
-            fmt.maximumSignificantDigits = MAX_COUNT - 2
+            fmt.maximumSignificantDigits = maxCount - 2
             fmt.numberStyle = .scientific
             return fmt.string(for: num)!
         }else{
             if(num<1){
-                fmt.maximumFractionDigits = MAX_COUNT
+                fmt.maximumFractionDigits = maxCount
             }else{
-                fmt.maximumSignificantDigits = MAX_COUNT
+                fmt.maximumSignificantDigits = maxCount
             }
             if(dec){
                 return fmt.string(for: Int(num))!

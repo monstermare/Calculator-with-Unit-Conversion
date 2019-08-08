@@ -68,6 +68,9 @@ extension ViewController: UITableViewDelegate{
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath){
         // DESCRIPTION: ACTION FOR 'BUTTON_CLICKED' EVENT
         // TODO:: return appropriate unit type by given index
+        let prevUnitType = tableSection
+        let prevSource = sourceUnit
+        let prevTarget = targetUnit
         if let cg = cell_group{
             let element = cg[indexPath.row]
             if tableSection != nil{
@@ -113,6 +116,9 @@ extension ViewController: UITableViewDelegate{
                 table!.refreshTable()
             }
         }
+        //if(prevUnitType != nil && prevSource != nil && prevTarget != nil && (prevSource != sourceUnit || prevTarget != targetUnit)){
+            //self.addHistory(prevUnitType!, prevSource!, prevTarget!)
+        //}
         self.updateLabels()
     }
 }
